@@ -1,0 +1,27 @@
+# Retrieve disk details, including SSDs
+try {
+    # Get disk drive information
+    $diskInfo = Get-CimInstance -ClassName Win32_DiskDrive | 
+                Select-Object Model, InterfaceType, MediaType, SerialNumber, 
+                              @{Name='Size(GB)'; Expression={[math]::round($_.Size / 1GB, 2)}}
+
+    # Check for SSDs by analyzing MediaType or model name
+    $ssdInfo = $diskInfo | Where-Object {
+        $_.MediaType -eq 'SSD' -or $_.Model -match 'SSD'
+    }
+
+    if ($ssdInfo) {
+        # Display SSD details in a table
+        $ssdInfo | Format-Table Model, InterfaceType, MediaType, SerialNumber, "Size(GB)" -AutoSize
+
+        # Calculate total SSD storage size
+        $totalSSDSize = $ssdInfo | Measure-Object -Property 'Size(GB)' -Sum | Select-Object -ExpandProperty Sum
+
+        # Display total SSD size
+        Write-Output "`nTotal SSD Storage: $totalSSDSize GB"
+    } else {
+        Write-Output "No SSDs detected."
+    }
+} catch {
+    Write-Output "Failed to retrieve disk information: $_"
+}
