@@ -1,0 +1,18 @@
+# Retrieve RAM details
+try {
+    # Get RAM information
+    $ramInfo = Get-CimInstance -ClassName Win32_PhysicalMemory | 
+               Select-Object Manufacturer, BankLabel, ConfiguredClockSpeed, DeviceLocator, Capacity, SerialNumber
+
+    # Display detailed RAM information in a table
+    $ramInfo | Format-Table Manufacturer, BankLabel, ConfiguredClockSpeed, DeviceLocator, Capacity, SerialNumber -AutoSize
+
+    # Calculate total RAM size
+    $totalRAM = $ramInfo | Measure-Object -Property Capacity -Sum | Select-Object -ExpandProperty Sum
+    $totalRAMGB = [math]::round($totalRAM / 1GB, 2)
+
+    # Display total RAM size
+    Write-Output "`nTotal RAM: $totalRAMGB GB"
+} catch {
+    Write-Output "Failed to retrieve RAM information: $_"
+}
